@@ -1,4 +1,3 @@
-import React from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
 
 export default function ContatosList({ contatos, onEdit, onDelete }) {
@@ -14,7 +13,7 @@ export default function ContatosList({ contatos, onEdit, onDelete }) {
                             Telefone
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Grupo
+                            Grupos
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Ações
@@ -35,9 +34,16 @@ export default function ContatosList({ contatos, onEdit, onDelete }) {
                                 </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
-                                    {contato.grupo}
-                                </span>
+                                <div className="flex flex-wrap gap-2">
+                                    {(Array.isArray(contato.grupo) ? contato.grupo : contato.grupo?.split(',') || []).map((g, index) => (
+                                        <span
+                                            key={index}
+                                            className="px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800"
+                                        >
+                                            {g.trim()}
+                                        </span>
+                                    ))}
+                                </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <button
