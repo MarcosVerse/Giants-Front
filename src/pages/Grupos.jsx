@@ -1,32 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Users } from 'lucide-react';
-import { contatosApi } from '../services/api';
-import ContatosList from '../components/Contatos/ContatosList';
-import ContatoModal from '../components/Contatos/ContatoModal';
+import React, { useEffect, useState } from 'react';
+import { Plus, Layers } from 'lucide-react';
+import { gruposApi } from '../services/api';
 import Loading from '../components/Common/Loading';
 import EmptyState from '../components/Common/EmptyState';
 
-export default function Contatos() {
-    const [contatos, setContatos] = useState([]);
+export default function Grupos() {
+    const [grupos, setGrupos] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({
-        nome: '',
-        telefone: '',
-        grupo: ''
-    });
+    const [grupo, setGrupo] = useState("");
 
     useEffect(() => {
-        loadContatos();
+        loadGrupos();
     }, []);
 
-    const loadContatos = async () => {
+    const loadGrupos = async () => {
         setLoading(true);
         try {
-            const data = await contatosApi.getAll();
-            setContatos(data);
+            const data = await gruposApi.getAll();
+            setGrupos(data);
         } catch (error) {
-            console.error('Erro ao carregar contatos:', error);
+            console.error("Erro ao carregar grupos:", error);
         } finally {
             setLoading(false);
         }
@@ -35,34 +29,24 @@ export default function Contatos() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            await contatosApi.create(formData);
-            setFormData({ nome: '', telefone: '', grupo: '' });
+            await gruposApi.create({ nome: grupo });
+            setGrupo("");
             setShowModal(false);
-            loadContatos();
+            loadGrupos();
         } catch (error) {
-            console.error('Erro ao salvar contato:', error);
+            console.error("Erro ao criar grupo:", error);
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleEdit = (contato) => {
-        console.log('Editar:', contato);
-        // implementar depois
-    };
-
-    const handleDelete = (id) => {
-        console.log('Deletar:', id);
-        // implementar depois
     };
 
     return (
         <div className="p-8">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Contatos</h1>
+                    <h1 className="text-3xl font-bold text-gray-800">Grupos</h1>
                     <p className="text-gray-600 mt-1">
-                        Gerencie seus contatos do WhatsApp
+                        Organize seus contatos em grupos
                     </p>
                 </div>
                 <button
@@ -70,34 +54,56 @@ export default function Contatos() {
                     className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors shadow-md"
                 >
                     <Plus size={20} />
-                    Novo Contato
+                    Novo Grupo
                 </button>
             </div>
 
             {loading ? (
                 <Loading />
-            ) : contatos.length === 0 ? (
+            ) : grupos.length === 0 ? (
                 <EmptyState
-                    icon={Users}
-                    title="Nenhum contato cadastrado"
-                    description="Comece adicionando seu primeiro contato"
+                    icon={Layers}
+                    title="Nenhum grupo criado"
+                    description="Comece adicionando seu primeiro grupo"
                 />
             ) : (
-                <ContatosList
-                    contatos={contatos}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                />
+                <ul className="bg-white shadow rounded-lg divide-y border">
+                    {grupos.map(g => (
+                        <li key={g.id} className="p-4 flex justify-between">
+                            <span className="text-gray-800 font-medium">{g.nome}</span>
+                        </li>
+                    ))}
+                </ul>
             )}
 
-            <ContatoModal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                formData={formData}
-                onChange={setFormData}
-                onSubmit={handleSubmit}
-                loading={loading}
-            />
+            {showModal && (
+                <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
+                    <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
+                        <h2 className="text-xl font-semibold mb-4">Novo Grupo</h2>
+
+                        <input
+                            type="text"
+                            placeholder="Nome do grupo"
+                            value={grupo}
+                            onChange={e => setGrupo(e.target.value)}
+                            className="w-full border px-3 py-2 rounded mb-4"
+                        />
+
+                        <div className="flex justify-end gap-3">
+                            <button className="px-4 py-2" onClick={() => setShowModal(false)}>
+                                Cancelar
+                            </button>
+                            <button
+                                disabled={loading}
+                                onClick={handleSubmit}
+                                className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+                            >
+                                Salvar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
