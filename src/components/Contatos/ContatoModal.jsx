@@ -1,4 +1,3 @@
-import React from 'react';
 import { X } from 'lucide-react';
 
 export default function ContatoModal({
@@ -7,7 +6,8 @@ export default function ContatoModal({
     formData,
     onChange,
     onSubmit,
-    loading
+    loading,
+    grupos
 }) {
     if (!isOpen) return null;
 
@@ -15,7 +15,9 @@ export default function ContatoModal({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
                 <div className="flex justify-between items-center p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-800">Novo Contato</h2>
+                    <h2 className="text-xl font-bold text-gray-800">
+                        {formData.id ? "Editar Contato" : "Novo Contato"}
+                    </h2>
                     <button
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600"
@@ -53,15 +55,34 @@ export default function ContatoModal({
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Grupo
+                            Grupos
                         </label>
-                        <input
-                            type="text"
-                            value={formData.grupo}
-                            onChange={(e) => onChange({ ...formData, grupo: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                            placeholder="Ex: Musculação, Crossfit..."
-                        />
+                        <div className="flex flex-wrap gap-2">
+                            {grupos.map((g) => {
+                                const ativo = Array.isArray(formData.grupo) && formData.grupo.includes(g.nome);
+
+                                return (
+                                    <button
+                                        key={g.id}
+                                        type="button"
+                                        onClick={() => {
+                                            const novos = ativo
+                                                ? formData.grupo.filter(x => x !== g.nome)
+                                                : [...(formData.grupo || []), g.nome];
+
+                                            onChange({ ...formData, grupo: novos });
+                                        }}
+                                        className={`px-3 py-1 rounded-full text-sm border transition
+                        ${ativo
+                                                ? "bg-orange-500 text-white border-orange-500"
+                                                : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                                            }`}
+                                    >
+                                        {g.nome}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     <div className="flex gap-3 pt-4">
