@@ -1,17 +1,17 @@
-import React from 'react';
 import { Users, Send, MessageSquare, Tags } from 'lucide-react';
 import MenuItem from './MenuItem';
 import giantsLogo from '../../assets/img/giants.png';
 
-
 export default function Sidebar({ currentPage, onNavigate }) {
     return (
         <div className="w-64 bg-white shadow-lg flex flex-col">
-            <div className="h-48 bg-gradient-to-br rounded-b-xl from-orange-500 to-orange-600 flex items-center justify-center">
-                <img className="w-40 h-40 rounded-full flex items-center justify-center" src={giantsLogo} alt="Giants-Logo" />
-                {/* <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-2xl">G</span>
-                </div> */}
+            {/* Altura ajustada de h-48 para h-36 */}
+            <div className="h-36 bg-gradient-to-br rounded-b-xl from-orange-500 to-orange-600 flex items-center justify-center p-4">
+                <img
+                    className="w-28 h-28 rounded-full object-cover shadow-lg"
+                    src={giantsLogo}
+                    alt="Giants Logo"
+                />
             </div>
 
             <nav className="flex-1 p-4 space-y-2">
@@ -43,7 +43,6 @@ export default function Sidebar({ currentPage, onNavigate }) {
                     currentPage={currentPage}
                     onClick={() => onNavigate('grupos')}
                 />
-
             </nav>
 
             <div className="p-4 border-t border-gray-200">
