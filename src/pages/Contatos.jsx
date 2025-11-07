@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Users, Search, User, Phone, ChevronLeft, ChevronRight, Eraser } from 'lucide-react';
 import { contatosApi } from '../services/api';
 import ContatosList from '../components/Contatos/ContatosList';
 import ContatoModal from '../components/Contatos/ContatoModal';
@@ -21,8 +21,12 @@ export default function Contatos() {
 
     // pesquisa
     const [searchBy, setSearchBy] = useState("nome");
-    const [search, setSearch] = useState("");
+    const [searchInput, setSearchInput] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
 
+    // paginação
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
     useEffect(() => {
         loadContatos();
@@ -46,9 +50,9 @@ export default function Contatos() {
 
         try {
             if (formData.id) {
-                await contatosApi.update(formData.id, formData); //edita
+                await contatosApi.update(formData.id, formData);
             } else {
-                await contatosApi.create(formData); //cria
+                await contatosApi.create(formData);
             }
 
             setFormData({ nome: '', telefone: '', grupo: [] });
@@ -61,7 +65,6 @@ export default function Contatos() {
             setLoading(false);
         }
     };
-
 
     const handleEdit = (contato) => {
         setFormData({
@@ -98,76 +101,213 @@ export default function Contatos() {
         }
     };
 
-    const filteredContatos = contatos.filter((contato) =>
-        contato.nome.toLowerCase().includes(search.toLowerCase()) ||
-        contato.telefone.toLowerCase().includes(search.toLowerCase())
-    );
+    const handleSearch = (e) => {
+        if (e.key === 'Enter') {
+            setSearchTerm(searchInput);
+            setCurrentPage(1); 
+        }
+    };
+
+    const clearSearch = () => {
+        setSearchInput("");
+        setSearchTerm("");
+        setCurrentPage(1);
+    };
+
+    const filteredContatos = contatos.filter((contato) => {
+        if (!searchTerm) return true;
+
+        const searchLower = searchTerm.toLowerCase();
+
+        if (searchBy === "nome") {
+            return contato.nome.toLowerCase().includes(searchLower);
+        } else if (searchBy === "telefone") {
+            return contato.telefone.toLowerCase().includes(searchLower);
+        }
+
+        return true;
+    });
+
+    const totalPages = Math.ceil(filteredContatos.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentContatos = filteredContatos.slice(startIndex, endIndex);
+
+    const goToPage = (page) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+        }
+    };
 
     return (
         <div className="p-8">
             <div className="flex justify-between items-center mb-6">
-                <div>
+
+                <div className="flex items-center gap-2">
+                    <Users size={32} className="text-orange-500" />
                     <h1 className="text-3xl font-bold text-gray-800">Contatos</h1>
-                    <p className="text-gray-600 mt-1">Gerencie seus contatos do WhatsApp</p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                        <select
-                            value={searchBy}
-                            onChange={(e) => setSearchBy(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-orange-400 focus:border-orange-400 transition"
-                        >
-                            <option value="nome">Nome</option>
-                            <option value="telefone">Telefone</option>
-                        </select>
+                <button
+                    onClick={() => setShowModal(true)}
+                    className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors shadow-md"
+                >
+                    <Plus size={20} />
+                    Novo Contato
+                </button>
 
-                        <div className="relative">
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+                <div className="flex items-center gap-6">
+
+                    <div className="flex flex-col gap-2">
+                        <button
+                            onClick={() => setSearchBy("nome")}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${searchBy === "nome"
+                                ? "bg-orange-500 text-white shadow-md"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                        >
+                            <User size={18} />
+                            <span className="font-medium">Nome</span>
+                        </button>
+
+                        <button
+                            onClick={() => setSearchBy("telefone")}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${searchBy === "telefone"
+                                ? "bg-orange-500 text-white shadow-md"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                        >
+                            <Phone size={18} />
+                            <span className="font-medium">Telefone</span>
+                        </button>
+                    </div>
+
+                    <div className="flex-1">
+                        <div className="relative flex items-center gap-2 pb-2 max-w-[380px] group">
+                            <Search
+                                size={20}
+                                className="text-gray-400 transition-all duration-300 group-focus-within:scale-110 group-focus-within:scale-110 group-focus-within:text-orange-500"
+                            />
                             <input
                                 type="text"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-orange-400 focus:border-orange-400 transition w-64"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                onKeyDown={handleSearch}
+                                placeholder={`Pesquisar por ${searchBy}...`}
+                                className="flex-1 outline-none text-gray-700 placeholder-gray-400 pb-1"
                             />
-                            <svg
-                                className="absolute left-3 top-2.5 text-gray-400"
-                                width="18"
-                                height="18"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle cx="11" cy="11" r="8" strokeWidth="2"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" strokeWidth="2"></line>
-                            </svg>
+                            <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gray-300"></span>
+                            <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-500 transition-all duration-300 group-focus-within:left-0 group-focus-within:w-full"></span>
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => setShowModal(true)}
-                        className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors shadow-md"
-                    >
-                        <Plus size={20} />
-                        Novo Contato
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => {
+                                setSearchTerm(searchInput);
+                                setCurrentPage(1);
+                            }}
+                            className="flex items-center justify-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors shadow-md"
+                        >
+                            <Search size={18} />
+                            Pesquisar
+                        </button>
+
+                        <button
+                            onClick={clearSearch}
+                            className="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                        >
+                            <Eraser size={18} />
+                            Limpar
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
-
             {loading ? (
                 <Loading />
-            ) : contatos.length === 0 ? (
-                <EmptyState
-                    icon={Users}
-                    title="Nenhum contato cadastrado"
-                    description="Comece adicionando seu primeiro contato"
-                />
+            ) : filteredContatos.length === 0 ? (
+                searchTerm ? (
+                    <EmptyState
+                        icon={Search}
+                        title="Nenhum resultado encontrado"
+                        description={`Não encontramos contatos com ${searchBy}: "${searchTerm}"`}
+                    />
+                ) : (
+                    <EmptyState
+                        icon={Users}
+                        title="Nenhum contato cadastrado"
+                        description="Comece adicionando seu primeiro contato"
+                    />
+                )
             ) : (
-                <ContatosList
-                    contatos={filteredContatos}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                />
+                <>
+                    <ContatosList
+                        contatos={currentContatos}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                    />
+
+                    {totalPages > 1 && (
+                        <div className="bg-white rounded-lg shadow-md p-4 mt-4 flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                                Mostrando {startIndex + 1} a {Math.min(endIndex, filteredContatos.length)} de {filteredContatos.length} contatos
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => goToPage(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+
+                                <div className="flex gap-1">
+                                    {[...Array(totalPages)].map((_, index) => {
+                                        const page = index + 1;
+                                        if (
+                                            page === 1 ||
+                                            page === totalPages ||
+                                            (page >= currentPage - 1 && page <= currentPage + 1)
+                                        ) {
+                                            return (
+                                                <button
+                                                    key={page}
+                                                    onClick={() => goToPage(page)}
+                                                    className={`px-4 py-2 rounded-lg transition-colors ${currentPage === page
+                                                        ? "bg-orange-500 text-white font-semibold"
+                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                        }`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            );
+                                        } else if (
+                                            page === currentPage - 2 ||
+                                            page === currentPage + 2
+                                        ) {
+                                            return <span key={page} className="px-2 text-gray-400">...</span>;
+                                        }
+                                        return null;
+                                    })}
+                                </div>
+
+                                <button
+                                    onClick={() => goToPage(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
             <ContatoModal
