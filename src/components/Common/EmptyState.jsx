@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function EmptyState({ icon: Icon, title, description }) {
     return (
         <div className="bg-white rounded-lg shadow-md p-12 text-center">
