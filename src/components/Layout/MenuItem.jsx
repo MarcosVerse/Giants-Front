@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function MenuItem({ icon: Icon, label, page, currentPage, onClick }) {
     return (
         <button
