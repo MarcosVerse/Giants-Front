@@ -66,10 +66,11 @@ export default function ContatoModal({
                                         key={g.id}
                                         type="button"
                                         onClick={() => {
-                                            const novos = ativo
-                                                ? formData.grupo.filter(x => x !== g.nome)
-                                                : [...(formData.grupo || []), g.nome];
-
+                                            const grupoAtual = formData.grupo || [];
+                                            const jaTem = grupoAtual.includes(g.nome);
+                                            const novos = jaTem
+                                                ? grupoAtual.filter(x => x !== g.nome)
+                                                : [...grupoAtual, g.nome];
                                             onChange({ ...formData, grupo: novos });
                                         }}
                                         className={`px-3 py-1 rounded-full text-sm  transition shadow-md
