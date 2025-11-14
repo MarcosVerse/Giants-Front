@@ -33,15 +33,15 @@ export default function Grupos() {
         setLoading(true);
         try {
             if (editingId) {
-                // TODO: implementar update na API
-                console.log("Editar grupo:", editingId);
+                await gruposApi.update(editingId, { nome: grupo });
             } else {
                 await gruposApi.create({ nome: grupo });
             }
+
             setGrupo("");
             setEditingId(null);
             setShowModal(false);
-            loadGrupos();
+            await loadGrupos();
         } catch (error) {
             console.error("Erro ao salvar grupo:", error);
         } finally {
@@ -58,8 +58,15 @@ export default function Grupos() {
     const handleDelete = async (id) => {
         if (!confirm("Tem certeza que deseja excluir este grupo?")) return;
         
-        // TODO: implementar delete na API
-        console.log("Deletar grupo:", id);
+        setLoading(true);
+        try {
+            await gruposApi.delete(id);
+            await loadGrupos();
+        } catch (error) {
+            console.error("Erro ao excluir grupo:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const closeModal = () => {
@@ -121,17 +128,17 @@ export default function Grupos() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <button
                                             onClick={() => handleEdit(g)}
-                                            className="text-blue-600 hover:text-blue-800 mr-3 transition-colors"
+                                            className="text-gray-500 hover:text-gray-800 mr-3 transition-colors"
                                             title="Editar grupo"
                                         >
-                                            <Edit2 size={16} />
+                                            <Edit2 size={20} />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(g.id)}
                                             className="text-red-600 hover:text-red-800 transition-colors"
                                             title="Excluir grupo"
                                         >
-                                            <Trash2 size={16} />
+                                            <Trash2 size={20} />
                                         </button>
                                     </td>
                                 </tr>
