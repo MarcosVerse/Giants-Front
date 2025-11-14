@@ -1,9 +1,10 @@
 const API_URL = 'http://localhost:3001/api';
 
 export const contatosApi = {
-    getAll: async () => {
-        const response = await fetch(`${API_URL}/contatos`);
-        if (!response.ok) throw new Error("Erro ao buscar contatos");
+    getPaginated: async (page = 1, search = "", searchBy = "nome") => {
+        const response = await fetch(
+            `${API_URL}/contatos?${searchBy}=${search}&page=${page}&limit=8`
+        );
         return response.json();
     },
 
@@ -28,14 +29,11 @@ export const contatosApi = {
     },
 
     delete: async (id) => {
-        const response = await fetch(`${API_URL}/contatos/${id}`, {
-            method: 'DELETE'
-        });
+        const response = await fetch(`${API_URL}/contatos/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error("Erro ao deletar contato");
         return response.json();
     }
 };
-
 
 export const mensagensApi = {
     enviar: async (grupo, mensagem) => {
@@ -50,18 +48,36 @@ export const mensagensApi = {
 
 export const gruposApi = {
     getAll: async () => {
-        const res = await fetch("http://localhost:3001/api/grupos");
-        if (!res.ok) throw new Error("Erro ao buscar grupos");
+        const res = await fetch(`${API_URL}/grupos`);
+        if (!res.ok) throw new Error("Erro ao carregar grupos");
         return res.json();
     },
-    create: async (grupo) => {
-        const res = await fetch("http://localhost:3001/api/grupos", {
+
+    create: async (data) => {
+        const res = await fetch(`${API_URL}/grupos`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(grupo)
+            body: JSON.stringify(data),
         });
+        if (!res.ok) throw new Error("Erro ao criar grupo");
         return res.json();
-    }
-};
+    },
 
-// TODO: MODULARIZAR SERVICES
+    update: async (id, data) => {
+        const res = await fetch(`${API_URL}/grupos/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error("Erro ao atualizar grupo");
+        return res.json();
+    },
+
+    delete: async (id) => {
+        const res = await fetch(`${API_URL}/grupos/${id}`, {
+            method: "DELETE",
+        });
+        if (!res.ok) throw new Error("Erro ao excluir grupo");
+        return res.json();
+    },
+};
