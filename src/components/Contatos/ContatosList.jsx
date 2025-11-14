@@ -1,6 +1,6 @@
 import { Edit2, Trash2 } from 'lucide-react';
 
-export default function ContatosList({ contatos, onEdit, onDelete }) {
+export default function ContatosList({ contatos = [], onEdit, onDelete }) {
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <table className="w-full">
@@ -22,10 +22,9 @@ export default function ContatosList({ contatos, onEdit, onDelete }) {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                     {contatos.map((contato) => {
-                        const grupos = Array.isArray(contato.grupo) 
-                            ? contato.grupo 
+                        const grupos = Array.isArray(contato.grupo)
+                            ? contato.grupo.map(g => typeof g === "object" ? g.nome : g)
                             : contato.grupo?.split(',').map(g => g.trim()) || [];
-
                         return (
                             <tr key={contato.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
