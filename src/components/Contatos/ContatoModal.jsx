@@ -29,7 +29,7 @@ export default function ContatoModal({
                 <div className="p-6 space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nome
+                            Nome *
                         </label>
                         <input
                             type="text"
@@ -37,12 +37,13 @@ export default function ContatoModal({
                             onChange={(e) => onChange({ ...formData, nome: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             placeholder="Digite o nome"
+                            required
                         />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Telefone
+                            Telefone *
                         </label>
                         <input
                             type="text"
@@ -50,6 +51,7 @@ export default function ContatoModal({
                             onChange={(e) => onChange({ ...formData, telefone: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             placeholder="+55 (41) 9999-9999"
+                            required
                         />
                     </div>
 
@@ -58,31 +60,35 @@ export default function ContatoModal({
                             Grupos
                         </label>
                         <div className="flex flex-wrap gap-2">
-                            {grupos.map((g) => {
-                                const ativo = Array.isArray(formData.grupo) && formData.grupo.includes(g.nome);
+                            {grupos.length === 0 ? (
+                                <p className="text-sm text-gray-500">Nenhum grupo disponível</p>
+                            ) : (
+                                grupos.map((g) => {
+                                    // Trabalhar com IDs agora
+                                    const ativo = Array.isArray(formData.grupo) && formData.grupo.includes(g.id);
 
-                                return (
-                                    <button
-                                        key={g.id}
-                                        type="button"
-                                        onClick={() => {
-                                            const grupoAtual = formData.grupo || [];
-                                            const jaTem = grupoAtual.includes(g.nome);
-                                            const novos = jaTem
-                                                ? grupoAtual.filter(x => x !== g.nome)
-                                                : [...grupoAtual, g.nome];
-                                            onChange({ ...formData, grupo: novos });
-                                        }}
-                                        className={`px-3 py-1 rounded-full text-sm  transition shadow-md
-                        ${ativo
+                                    return (
+                                        <button
+                                            key={g.id}
+                                            type="button"
+                                            onClick={() => {
+                                                const grupoAtual = formData.grupo || [];
+                                                const jaTem = grupoAtual.includes(g.id);
+                                                const novos = jaTem
+                                                    ? grupoAtual.filter(id => id !== g.id)
+                                                    : [...grupoAtual, g.id];
+                                                onChange({ ...formData, grupo: novos });
+                                            }}
+                                            className={`px-3 py-1 rounded-full text-sm transition shadow-md ${ativo
                                                 ? "bg-orange-500 text-white border-orange-500 shadow-orange-500/50"
                                                 : "bg-gray-50 text-gray-700 hover:bg-gray-200"
-                                            }`}
-                                    >
-                                        {g.nome}
-                                    </button>
-                                );
-                            })}
+                                                }`}
+                                        >
+                                            {g.nome}
+                                        </button>
+                                    );
+                                })
+                            )}
                         </div>
                     </div>
 
@@ -95,8 +101,8 @@ export default function ContatoModal({
                         </button>
                         <button
                             onClick={onSubmit}
-                            disabled={loading}
-                            className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+                            disabled={loading || !formData.nome || !formData.telefone}
+                            className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? 'Salvando...' : 'Salvar'}
                         </button>

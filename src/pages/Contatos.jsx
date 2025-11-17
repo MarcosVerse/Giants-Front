@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Users, Search, User, Phone, ChevronLeft, ChevronRight, Eraser, Filter, X } from 'lucide-react';
+import { Plus, Users, Search, User, Phone, ChevronLeft, ChevronRight, Eraser } from 'lucide-react';
 import { contatosApi, gruposApi } from '../services/api';
 import ContatosList from '../components/Contatos/ContatosList';
 import ContatoModal from '../components/Contatos/ContatoModal';
@@ -19,17 +19,12 @@ export default function Contatos() {
         grupo: []
     });
 
-
-    // pesquisa
+    // Pesquisa
     const [searchBy, setSearchBy] = useState("nome");
     const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
 
-    // filtro de grupos
-    const [selectedGrupos, setSelectedGrupos] = useState([]);
-    const [showGruposDropdown, setShowGruposDropdown] = useState(false);
-
-    // paginação
+    // Paginação
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
@@ -38,14 +33,20 @@ export default function Contatos() {
 
     useEffect(() => {
         loadContatos();
-    }, [currentPage, searchTerm]);
-
+    }, [currentPage, searchTerm, searchBy]);
 
     const loadContatos = async () => {
         setLoading(true);
         try {
-            const response = await contatosApi.getPaginated(currentPage, searchTerm);
+            const filters = {
+                nome: searchBy === "nome" ? searchTerm : "",     
+                telefone: searchBy === "telefone" ? searchTerm : "", 
+                grupos: [],
+                page: currentPage,
+                limit: 8
+            };
 
+            const response = await contatosApi.search(filters);
             setContatos(response.data);
             setTotal(response.total);
         } catch (error) {
@@ -54,9 +55,6 @@ export default function Contatos() {
             setLoading(false);
         }
     };
-
-
-
 
     const loadGrupos = async () => {
         try {
@@ -77,19 +75,13 @@ export default function Contatos() {
         setShowModal(true);
     };
 
-
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            // Converter nomes dos grupos para IDs
-            const gruposSelecionados = grupos
-                .filter(g => formData.grupo.includes(g.nome))
-                .map(g => g.id);
-
             const payload = {
                 nome: formData.nome,
                 telefone: formData.telefone,
-                grupo: gruposSelecionados
+                grupo: formData.grupo
             };
 
             if (formData.id) {
@@ -102,6 +94,7 @@ export default function Contatos() {
             loadContatos();
         } catch (err) {
             console.error("Erro ao salvar contato:", err);
+            alert(err.response?.data?.error || "Erro ao salvar contato");
         } finally {
             setLoading(false);
         }
@@ -113,12 +106,11 @@ export default function Contatos() {
             nome: contato.nome,
             telefone: contato.telefone,
             grupo: Array.isArray(contato.grupo)
-                ? contato.grupo.map(g => g.nome)
+                ? contato.grupo.map(g => g.id)
                 : [],
         });
         setShowModal(true);
     };
-
 
     const handleDelete = async (id) => {
         if (!confirm("Tem certeza que deseja excluir esse contato?")) return;
@@ -129,6 +121,7 @@ export default function Contatos() {
             loadContatos();
         } catch (error) {
             console.error('Erro ao deletar contato:', error);
+            alert(error.response?.data?.error || "Erro ao deletar contato");
         } finally {
             setLoading(false);
         }
@@ -144,23 +137,6 @@ export default function Contatos() {
     const clearSearch = () => {
         setSearchInput("");
         setSearchTerm("");
-        setSelectedGrupos([]);
-        setCurrentPage(1);
-    };
-
-    const toggleGrupo = (grupoNome) => {
-        setSelectedGrupos(prev => {
-            if (prev.includes(grupoNome)) {
-                return prev.filter(nome => nome !== grupoNome);
-            } else {
-                return [...prev, grupoNome];
-            }
-        });
-        setCurrentPage(1);
-    };
-
-    const removeGrupo = (grupoNome) => {
-        setSelectedGrupos(prev => prev.filter(nome => nome !== grupoNome));
         setCurrentPage(1);
     };
 
@@ -172,6 +148,8 @@ export default function Contatos() {
             setCurrentPage(page);
         }
     };
+
+    const hasFilters = searchTerm;
 
     return (
         <div className="p-8">
@@ -235,85 +213,6 @@ export default function Contatos() {
                         </div>
                     </div>
 
-                    <div className="relative">
-                        <button
-                            onClick={() => setShowGruposDropdown(!showGruposDropdown)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all border-2 ${selectedGrupos.length > 0
-                                ? "bg-orange-500 text-white border-orange-500 shadow-md"
-                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                }`}
-                        >
-                            <Filter size={18} />
-                            <span className="font-medium">Grupos</span>
-                            {selectedGrupos.length > 0 && (
-                                <span className="bg-white text-orange-500 text-xs font-bold px-2 py-0.5 rounded-full">
-                                    {selectedGrupos.length}
-                                </span>
-                            )}
-                        </button>
-
-                        {showGruposDropdown && (
-                            <>
-                                {/* Overlay para fechar o dropdown ao clicar fora */}
-                                <div
-                                    className="fixed inset-0 z-10"
-                                    onClick={() => setShowGruposDropdown(false)}
-                                />
-
-                                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-20">
-                                    <div className="p-3 border-b border-gray-200">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-semibold text-gray-700">Filtrar por Grupos</span>
-                                            <button
-                                                onClick={() => setShowGruposDropdown(false)}
-                                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                                            >
-                                                <X size={18} />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="max-h-64 overflow-y-auto">
-                                        {grupos.length === 0 ? (
-                                            <div className="p-4 text-center text-gray-500 text-sm">
-                                                Nenhum grupo cadastrado
-                                            </div>
-                                        ) : (
-                                            grupos.map(grupo => (
-                                                <label
-                                                    key={grupo.id}
-                                                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedGrupos.includes(grupo.nome)}
-                                                        onChange={() => toggleGrupo(grupo.nome)}
-                                                        className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500 cursor-pointer"
-                                                    />
-                                                    <span className="text-gray-700 flex-1">{grupo.nome}</span>
-                                                </label>
-                                            ))
-                                        )}
-                                    </div>
-
-                                    {selectedGrupos.length > 0 && (
-                                        <div className="p-3 border-t border-gray-200">
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedGrupos([]);
-                                                    setCurrentPage(1);
-                                                }}
-                                                className="w-full text-sm text-orange-500 hover:text-orange-600 font-medium transition-colors"
-                                            >
-                                                Limpar filtros
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
-
                     <div className="flex gap-3">
                         <button
                             onClick={() => {
@@ -335,32 +234,12 @@ export default function Contatos() {
                         </button>
                     </div>
                 </div>
-
-                {selectedGrupos.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
-                        <span className="text-sm text-gray-600 font-medium">Filtrando por:</span>
-                        {selectedGrupos.map(grupoNome => (
-                            <span
-                                key={grupoNome}
-                                className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium"
-                            >
-                                {grupoNome}
-                                <button
-                                    onClick={() => removeGrupo(grupoNome)}
-                                    className="hover:bg-orange-200 rounded-full p-0.5 transition-colors"
-                                >
-                                    <X size={14} />
-                                </button>
-                            </span>
-                        ))}
-                    </div>
-                )}
             </div>
 
             {loading ? (
                 <Loading />
             ) : total === 0 ? (
-                searchTerm ? (
+                hasFilters ? (
                     <EmptyState
                         icon={Search}
                         title="Nenhum resultado encontrado"

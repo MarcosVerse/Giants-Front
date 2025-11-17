@@ -1,83 +1,46 @@
-const API_URL = 'http://localhost:3001/api';
+import axios from 'axios';
 
+const api = axios.create({
+    baseURL: 'http://localhost:3001/api'
+});
+
+// contatos
 export const contatosApi = {
-    getPaginated: async (page = 1, search = "", searchBy = "nome") => {
-        const response = await fetch(
-            `${API_URL}/contatos?${searchBy}=${search}&page=${page}&limit=8`
-        );
-        return response.json();
+
+    search: (filters) => {
+        return api.post('/contatos/search', filters).then(r => r.data);
     },
 
-    create: async (contato) => {
-        const response = await fetch(`${API_URL}/contatos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(contato)
-        });
-        if (!response.ok) throw new Error("Erro ao criar contato");
-        return response.json();
+    create: (data) => {
+        return api.post('/contatos', data).then(r => r.data);
     },
 
-    update: async (id, contato) => {
-        const response = await fetch(`${API_URL}/contatos/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(contato)
-        });
-        if (!response.ok) throw new Error("Erro ao atualizar contato");
-        return response.json();
+    update: (id, data) => {
+        return api.put(`/contatos/${id}`, data).then(r => r.data);
     },
 
-    delete: async (id) => {
-        const response = await fetch(`${API_URL}/contatos/${id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error("Erro ao deletar contato");
-        return response.json();
+    delete: (id) => {
+        return api.delete(`/contatos/${id}`).then(r => r.data);
     }
 };
 
-export const mensagensApi = {
-    enviar: async (grupo, mensagem) => {
-        const response = await fetch(`${API_URL}/enviar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ grupo, mensagem })
-        });
-        return response.json();
-    }
-};
-
+// grupos
 export const gruposApi = {
-    getAll: async () => {
-        const res = await fetch(`${API_URL}/grupos`);
-        if (!res.ok) throw new Error("Erro ao carregar grupos");
-        return res.json();
+    getAll: () => {
+        return api.get('/grupos').then(r => r.data);
     },
 
-    create: async (data) => {
-        const res = await fetch(`${API_URL}/grupos`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error("Erro ao criar grupo");
-        return res.json();
+    create: (data) => {
+        return api.post('/grupos', data).then(r => r.data);
     },
 
-    update: async (id, data) => {
-        const res = await fetch(`${API_URL}/grupos/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error("Erro ao atualizar grupo");
-        return res.json();
+    update: (id, data) => {
+        return api.put(`/grupos/${id}`, data).then(r => r.data);
     },
 
-    delete: async (id) => {
-        const res = await fetch(`${API_URL}/grupos/${id}`, {
-            method: "DELETE",
-        });
-        if (!res.ok) throw new Error("Erro ao excluir grupo");
-        return res.json();
-    },
+    delete: (id) => {
+        return api.delete(`/grupos/${id}`).then(r => r.data);
+    }
 };
+
+export default api;
